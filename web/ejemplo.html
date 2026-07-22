@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>W-NET Señal — Demo de integración</title>
+</head>
+<body style="font-family:sans-serif;max-width:420px;margin:24px auto;padding:0 16px">
+  <h2>Demo — captura de RSSI</h2>
+
+  <!-- Opción A: widget automático -->
+  <div id="senal"></div>
+
+  <!-- Opción B: engancha el evento a tu propia UI -->
+  <p style="margin-top:20px">Lectura manual (tu UI):
+     <b id="mio">—</b></p>
+
+  <hr>
+  <p style="color:#888;font-size:13px">Abre esta página dentro de la app
+     <b>W-NET Señal</b> para ver el dBm real. En un navegador normal indicará
+     que debe abrirse desde la app.</p>
+
+  <script src="winet-rssi.js"></script>
+  <script>
+    // Opción A: widget listo
+    WinetRSSI.mount('#senal');
+
+    // Opción B: tu propia UI escuchando el evento
+    document.addEventListener('winet:rssi', function (e) {
+      var s = e.detail;
+      document.getElementById('mio').textContent =
+        s.available ? (s.rssi + ' dBm · ' + s.label + (s.band ? ' · ' + s.band : ''))
+                    : 'No disponible (abrir desde la app)';
+    });
+
+    // Respaldo de pruebas en navegador (si no hay Node)
+    (function verificarClasificacion() {
+      var casos = [[-24,'optima'],[-50,'optima'],[-51,'buena'],[-60,'buena'],
+        [-61,'baja'],[-77,'baja'],[-78,'debil'],[-84,'debil'],
+        [-85,'fuera'],[-92,'fuera'],[null,'na'],[0,'na']];
+      var ok = casos.every(function (c) { return WinetRSSI.classify(c[0]).quality === c[1]; });
+      console.log(ok ? 'OK: clasificación W-NET correcta (' + casos.length + ' casos)'
+                     : 'ERROR: la clasificación no coincide');
+    })();
+  </script>
+</body>
+</html>
