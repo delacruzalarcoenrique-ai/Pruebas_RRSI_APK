@@ -8,6 +8,7 @@ const casos = [
   [-78, 'debil'],  [-84, 'debil'],
   [-85, 'fuera'],  [-92, 'fuera'],
   [null, 'na'],    [0, 'na'],
+  [-127, 'na'],    [-130, 'na'],
 ];
 
 for (const [rssi, esperado] of casos) {

@@ -37,7 +37,7 @@
     (function verificarClasificacion() {
       var casos = [[-24,'optima'],[-50,'optima'],[-51,'buena'],[-60,'buena'],
         [-61,'baja'],[-77,'baja'],[-78,'debil'],[-84,'debil'],
-        [-85,'fuera'],[-92,'fuera'],[null,'na'],[0,'na']];
+        [-85,'fuera'],[-92,'fuera'],[null,'na'],[0,'na'],[-127,'na']];
       var ok = casos.every(function (c) { return WinetRSSI.classify(c[0]).quality === c[1]; });
       console.log(ok ? 'OK: clasificación W-NET correcta (' + casos.length + ' casos)'
                      : 'ERROR: la clasificación no coincide');
