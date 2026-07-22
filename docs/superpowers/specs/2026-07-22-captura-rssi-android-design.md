@@ -63,7 +63,8 @@ Dos unidades independientes con interfaz bien definida (el objeto `WinetWifi`):
 ## 4. Componente A — Mini-app Android
 
 - **Lenguaje:** Kotlin. Una sola `MainActivity`.
-- **minSdk 24 (Android 7), targetSdk 34.** Cubre prácticamente todo Android de campo.
+- **minSdk 26 (Android 8), targetSdk 34.** Cubre >99% de equipos de campo y permite
+  íconos vectoriales adaptativos sin PNG binarios.
 - **Permisos (Manifest):** `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK_STATE`,
   `ACCESS_FINE_LOCATION`.
 - **Permiso en runtime:** se solicita `ACCESS_FINE_LOCATION` al abrir (Android 8+
