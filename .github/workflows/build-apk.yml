@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # necesario para crear/actualizar la Release
     steps:
       - uses: actions/checkout@v4
 
@@ -30,9 +32,21 @@ jobs:
       - name: Compilar APK debug
         run: gradle assembleDebug --no-daemon
 
-      - name: Subir APK
+      - name: Subir APK (artifact de respaldo)
         uses: actions/upload-artifact@v4
         with:
           name: winet-senal-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publicar APK en Release "latest" (enlace de descarga directo)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Recrea la release "latest" para que el tag apunte al commit actual
+          gh release delete latest --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" || true
+          gh release create latest \
+            app/build/outputs/apk/debug/app-debug.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "W-NET Señal — último APK" \
+            --notes "APK debug generado automáticamente desde el commit ${GITHUB_SHA}. Descárgalo directo: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/app-debug.apk"
