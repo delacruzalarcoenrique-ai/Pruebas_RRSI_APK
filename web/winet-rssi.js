@@ -32,7 +32,15 @@
         available: !!d.available,
         rssi: d.rssi,
         band: d.band || '',
-        frequencyMhz: d.frequencyMhz || 0
+        frequencyMhz: d.frequencyMhz || 0,
+        // Diagnóstico: de qué fuente salió el dBm y qué reporta cada una.
+        source: d.source || '',
+        rssiScan: typeof d.rssiScan === 'number' ? d.rssiScan : null,
+        rssiLink: typeof d.rssiLink === 'number' ? d.rssiLink : null,
+        rssiCaps: typeof d.rssiCaps === 'number' ? d.rssiCaps : null,
+        scanAgeMs: typeof d.scanAgeMs === 'number' ? d.scanAgeMs : -1,
+        bssid: d.bssid || '',
+        linkSpeedMbps: typeof d.linkSpeedMbps === 'number' ? d.linkSpeedMbps : -1
       };
     } catch (e) {
       return { available: false, rssi: null, band: '', frequencyMhz: 0 };
@@ -49,7 +57,14 @@
       frequencyMhz: info.frequencyMhz,
       quality: q.quality,
       label: q.label,
-      color: q.color
+      color: q.color,
+      source: info.source || '',
+      rssiScan: info.rssiScan == null ? null : info.rssiScan,
+      rssiLink: info.rssiLink == null ? null : info.rssiLink,
+      rssiCaps: info.rssiCaps == null ? null : info.rssiCaps,
+      scanAgeMs: info.scanAgeMs == null ? -1 : info.scanAgeMs,
+      bssid: info.bssid || '',
+      linkSpeedMbps: info.linkSpeedMbps == null ? -1 : info.linkSpeedMbps
     };
   }
 

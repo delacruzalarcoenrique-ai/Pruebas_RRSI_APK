@@ -15,6 +15,16 @@
   <p style="margin-top:20px">Lectura manual (tu UI):
      <b id="mio">—</b></p>
 
+  <!-- Diagnóstico: compara las fuentes de RSSI contra un analizador WiFi -->
+  <div id="diag" style="margin-top:18px;font-size:13px;background:#f7f7f7;
+       border:1px solid #e0e0e0;border-radius:10px;padding:12px">
+    <b>Diagnóstico de fuentes</b>
+    <div id="diagBody" style="margin-top:8px;color:#555">Esperando datos…</div>
+    <p style="margin:10px 0 0;color:#888;font-size:12px">Compara estos valores con el
+       RX que muestra tu analizador WiFi. El grande de arriba usa la fuente
+       marcada como <i>en uso</i>.</p>
+  </div>
+
   <hr>
   <p style="color:#888;font-size:13px">Abre esta página dentro de la app
      <b>W-NET Señal</b> para ver el dBm real. En un navegador normal indicará
@@ -31,7 +41,36 @@
       document.getElementById('mio').textContent =
         s.available ? (s.rssi + ' dBm · ' + s.label + (s.band ? ' · ' + s.band : ''))
                     : 'No disponible (abrir desde la app)';
+      pintarDiagnostico(s);
     });
+
+    // Panel de diagnóstico: qué reporta cada fuente de RSSI.
+    function pintarDiagnostico(s) {
+      var body = document.getElementById('diagBody');
+      if (!s.available) {
+        body.textContent = 'Sin datos (abre esta página desde la app W-NET Señal).';
+        return;
+      }
+      function fila(clave, etiqueta, valor, nota) {
+        var enUso = s.source === clave;
+        return '<div style="display:flex;justify-content:space-between;gap:8px;' +
+               'padding:3px 0' + (enUso ? ';font-weight:700;color:#0F7B0F' : '') + '">' +
+               '<span>' + etiqueta + (enUso ? ' (en uso)' : '') + '</span>' +
+               '<span>' + (valor == null ? '—' : valor + ' dBm') +
+               (nota ? ' <span style="color:#999;font-weight:400">' + nota + '</span>' : '') +
+               '</span></div>';
+      }
+      var edad = s.scanAgeMs >= 0 ? '· hace ' + Math.round(s.scanAgeMs / 1000) + ' s' : '';
+      body.innerHTML =
+        fila('scan', 'Escaneo (beacon)', s.rssiScan, edad) +
+        fila('link', 'Enlace (driver)', s.rssiLink, '') +
+        fila('caps', 'API moderna', s.rssiCaps, '') +
+        '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0e0e0;color:#777">' +
+        (s.bssid ? 'BSSID ' + s.bssid + '<br>' : '') +
+        (s.frequencyMhz ? s.frequencyMhz + ' MHz' : '') +
+        (s.linkSpeedMbps >= 0 ? ' · ' + s.linkSpeedMbps + ' Mbps' : '') +
+        '</div>';
+    }
 
     // Respaldo de pruebas en navegador (si no hay Node)
     (function verificarClasificacion() {
