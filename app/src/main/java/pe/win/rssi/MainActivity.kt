@@ -14,7 +14,7 @@ class MainActivity : Activity() {
     // ┌───────────────────────────────────────────────────────────────┐
     // │  CONFIGURA AQUÍ la URL de tu página de speedtest en Vercel:    │
     // └───────────────────────────────────────────────────────────────┘
-    private val webUrl = "https://TU-PROYECTO.vercel.app"
+    private val webUrl = "https://pruebas-rrsi-apk.vercel.app/web/ejemplo.html"
 
     private lateinit var webView: WebView
 
