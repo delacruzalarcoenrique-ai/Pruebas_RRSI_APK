@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/apk",
+      "destination": "https://github.com/delacruzalarcoenrique-ai/Pruebas_RRSI_APK/releases/latest/download/app-debug.apk"
+    }
+  ]
+}

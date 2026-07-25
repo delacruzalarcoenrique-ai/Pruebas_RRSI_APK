@@ -10,7 +10,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.webkit.JavascriptInterface
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import android.webkit.WebViewClient
 
 class MainActivity : Activity() {
 
@@ -19,7 +22,15 @@ class MainActivity : Activity() {
     // └───────────────────────────────────────────────────────────────┘
     private val webUrl = "https://pruebas-rrsi-apk.vercel.app/web/ejemplo.html"
 
+    /**
+     * Copia local de la página, empaquetada en el APK (ver tarea `copiarWeb`).
+     * Se usa si la página remota no carga: el técnico suele estar en sitios
+     * sin internet, y la medición de señal no depende de la red.
+     */
+    private val urlRespaldo = "file:///android_asset/ejemplo.html"
+
     private lateinit var webView: WebView
+    private var usandoRespaldo = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +46,21 @@ class MainActivity : Activity() {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.addJavascriptInterface(WinetWifi(this), "WinetWifi")
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun onReceivedError(
+                view: WebView,
+                request: WebResourceRequest,
+                error: WebResourceError
+            ) {
+                // Solo nos importa el fallo de la página principal, no de subrecursos.
+                if (request.isForMainFrame && !usandoRespaldo) {
+                    usandoRespaldo = true
+                    view.loadUrl(urlRespaldo)
+                }
+            }
+        }
+
         setContentView(webView)
         webView.loadUrl(webUrl)
     }
@@ -62,8 +88,12 @@ class MainActivity : Activity() {
  */
 class WinetWifi(private val ctx: Context) {
 
-    /** Intervalo mínimo entre solicitudes de escaneo (Android limita a ~4 por 2 min). */
-    private val scanRequestIntervalMs = 30_000L
+    /**
+     * Intervalo mínimo entre solicitudes de escaneo. Android limita a 4 por cada
+     * 2 minutos en primer plano; 35 s queda por debajo del límite (30 s lo roza
+     * y algunas solicitudes se descartan).
+     */
+    private val scanRequestIntervalMs = 35_000L
     private var lastScanRequestMs = 0L
 
     private fun wifiManager() =

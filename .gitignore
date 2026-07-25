@@ -1,0 +1,11 @@
+# Salidas de compilación
+build/
+app/build/
+.gradle/
+local.properties
+
+# Generado por la tarea Gradle `copiarWeb` (la fuente única es web/)
+app/src/main/assets/
+
+# Notas de trabajo internas
+.superpowers/
