@@ -47,17 +47,61 @@
     }
   }
 
+  // --- Selección de fuente de medición -------------------------------------
+  // 'auto' = beacon si hay escaneo, si no el driver (comportamiento por defecto)
+  // 'scan' = beacon (coincide con los analizadores WiFi, se refresca ~35 s)
+  // 'link' = driver (se refresca ~1-3 s, lee algunos dB por debajo)
+  var FUENTE_KEY = 'winet.fuente';
+  var fuente = 'auto';
+
+  try {
+    var guardada = global.localStorage && global.localStorage.getItem(FUENTE_KEY);
+    if (guardada === 'scan' || guardada === 'link' || guardada === 'auto') fuente = guardada;
+  } catch (e) { /* sin localStorage disponible */ }
+
+  function getSource() { return fuente; }
+
+  function setSource(nueva) {
+    if (nueva !== 'auto' && nueva !== 'scan' && nueva !== 'link') return fuente;
+    fuente = nueva;
+    try {
+      if (global.localStorage) global.localStorage.setItem(FUENTE_KEY, nueva);
+    } catch (e) { /* modo privado o sin almacenamiento */ }
+    tick();   // refresca de inmediato, sin esperar al siguiente ciclo
+    return fuente;
+  }
+
+  /** Decide qué dBm mostrar según la fuente elegida, informando cuál se usó. */
+  function elegirRssi(info) {
+    if (fuente === 'link' && info.rssiLink != null) {
+      return { rssi: info.rssiLink, usada: 'link' };
+    }
+    if (fuente === 'scan') {
+      if (info.rssiScan != null) return { rssi: info.rssiScan, usada: 'scan' };
+      // Aún no hay escaneo del BSSID: mostramos el driver y lo decimos claro.
+      return { rssi: info.rssiLink, usada: 'link', esperandoEscaneo: true };
+    }
+    if (info.rssiScan != null) return { rssi: info.rssiScan, usada: 'scan' };
+    return { rssi: info.rssiLink, usada: 'link' };
+  }
+
   function getWifiSignal() {
     var info = readNative();
-    var q = classify(info.available ? info.rssi : null);
+    var elegido = info.available
+      ? elegirRssi(info)
+      : { rssi: null, usada: '', esperandoEscaneo: false };
+    var q = classify(info.available ? elegido.rssi : null);
     return {
       available: info.available,
-      rssi: info.available ? info.rssi : null,
+      rssi: info.available ? elegido.rssi : null,
       band: info.band,
       frequencyMhz: info.frequencyMhz,
       quality: q.quality,
       label: q.label,
       color: q.color,
+      fuente: fuente,
+      sourceUsed: elegido.usada || '',
+      esperandoEscaneo: !!elegido.esperandoEscaneo,
       source: info.source || '',
       rssiScan: info.rssiScan == null ? null : info.rssiScan,
       rssiLink: info.rssiLink == null ? null : info.rssiLink,
@@ -72,6 +116,7 @@
   var widgetEl = null;
 
   function dispatch(signal) {
+    if (typeof document === 'undefined') return;   // entorno sin DOM (pruebas)
     var ev;
     try {
       ev = new CustomEvent('winet:rssi', { detail: signal });
@@ -112,6 +157,12 @@
         '📶 Abre desde la app <b>W-NET Señal</b> para medir la señal</div>';
       return;
     }
+    // Etiqueta de la fuente realmente usada y el otro valor como referencia.
+    var nombre = s.sourceUsed === 'scan' ? 'Beacon' : 'Driver';
+    if (s.esperandoEscaneo) nombre = 'Driver (esperando escaneo)';
+    var otro = s.sourceUsed === 'scan' ? s.rssiLink : s.rssiScan;
+    var otroNombre = s.sourceUsed === 'scan' ? 'driver' : 'beacon';
+
     el.innerHTML =
       '<div style="font-family:sans-serif;padding:14px;border-radius:12px;color:#fff;' +
       'text-align:center;background:' + s.color + '">' +
@@ -119,6 +170,9 @@
           s.rssi + ' <span style="font-size:16px">dBm</span></div>' +
         '<div style="font-size:16px;margin-top:4px">' + s.label + '</div>' +
         (s.band ? '<div style="font-size:12px;opacity:.9;margin-top:2px">' + s.band + '</div>' : '') +
+        '<div style="font-size:12px;opacity:.85;margin-top:6px">' + nombre +
+          (otro == null ? '' : ' · ' + otroNombre + ': ' + otro + ' dBm') +
+        '</div>' +
       '</div>';
   }
 
@@ -128,7 +182,9 @@
     hasBridge: hasBridge,
     start: start,
     stop: stop,
-    mount: mount
+    mount: mount,
+    getSource: getSource,
+    setSource: setSource
   };
 
   global.WinetRSSI = api;
