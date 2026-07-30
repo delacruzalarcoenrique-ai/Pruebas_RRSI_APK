@@ -4,6 +4,11 @@ Mini-app Android que abre la página de speedtest de W-NET (Vercel) y le da acce
 al **RSSI real (dBm)** y a la **banda (2.4/5/6 GHz)** del enlace WiFi, para que los
 técnicos evalúen la calidad de la señal en campo.
 
+> 📘 **¿Vas a mantener o compilar este proyecto?** Lee
+> **[MANUAL-TECNICO.md](MANUAL-TECNICO.md)** — explica la arquitectura con diagramas,
+> cómo construir el APK paso a paso, las dos fuentes de RSSI y los problemas
+> frecuentes.
+
 ## 1. Configurar la URL
 
 Edita `app/src/main/java/pe/win/rssi/MainActivity.kt` y reemplaza:
